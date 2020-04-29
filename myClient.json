@@ -1,0 +1,12 @@
+{
+  "id": 1,
+  "login": "dima_kuprik",
+  "firstName": "Dima",
+  "secondName": "Kuprik",
+  "middleName": "Anatolevich",
+  "roles": [
+    {
+      "name": "ROLE_USER"
+    }
+  ]
+}
