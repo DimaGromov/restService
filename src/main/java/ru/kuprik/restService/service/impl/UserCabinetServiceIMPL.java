@@ -1,6 +1,7 @@
 package ru.kuprik.restService.service.impl;
 
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Service
+@Slf4j
 public class UserCabinetServiceIMPL implements UserCabinetService {
 
 
@@ -34,8 +36,15 @@ public class UserCabinetServiceIMPL implements UserCabinetService {
 
     @Override
     public CardDTO addNewCard(@NonNull CardDTO cardDTO) {
+        String clientLogin = SecurityContextHolder.getContext().getAuthentication().getName();
         if(cardService.findByNumber(cardDTO.getNumber()) != null) {
+            log.warn("Карта с номером: {} уже создана", cardDTO.getNumber());
             throw new CardAlredyCreteException("Карта с номером: " + cardDTO.getNumber() + " уже создана");
+        }
+
+        if(!clientLogin.equals(cardDTO.getOwnerLogin())) {
+            log.warn("Карта с номером: {} не пренадлежит авторизированному пользователю", cardDTO.getNumber());
+            throw new WrongCardOwnerExeption("Карта с номером: " + cardDTO.getNumber() + " не пренадлежит авторизированному пользователю");
         }
         return cardService.addNewCard(cardDTO);
     }
@@ -51,6 +60,7 @@ public class UserCabinetServiceIMPL implements UserCabinetService {
         CardDTO cardDTO = cardService.findByNumber(number);
 
         if(cardDTO == null) {
+            log.warn("Карта с номером: {} не найдена", number);
             throw new CardNotFoundExeption("Карта с номером: " + number + " не найдена");
         }
 
@@ -61,26 +71,30 @@ public class UserCabinetServiceIMPL implements UserCabinetService {
     @Override
     public TransactionDTO sendMoney(String fromCard, String toCard, BigDecimal money) {
 
-        String clientLogin = SecurityContextHolder.getContext().getAuthentication().getName();
-
         CardDTO fromCardDTO = cardService.findByNumber(fromCard);
         CardDTO toCardDTO = cardService.findByNumber(toCard);
 
+        String clientLogin = SecurityContextHolder.getContext().getAuthentication().getName();
+
         if ( fromCardDTO == null) {
+            log.warn("Карта с номером: {} не найдена", fromCard);
             throw new CardNotFoundExeption("Карта с номером: " + fromCard + " не найдена");
         }
 
         if (toCardDTO == null) {
-         throw new CardNotFoundExeption("Карта с номером: " + toCard + " не найдена");
+            log.warn("Карта с номером: {} не найдена", toCard);
+            throw new CardNotFoundExeption("Карта с номером: " + toCard + " не найдена");
         }
 
-        if(fromCardDTO.getOwnerLogin() != clientLogin)  {
+        if(!fromCardDTO.getOwnerLogin().equals(clientLogin))  {
+            log.warn("Карта с номером: {} не пренадлежит авторизированному пользователю", fromCard);
             throw new WrongCardOwnerExeption("Карта с номером: " + fromCard + " не пренадлежит авторизированному пользователю");
         }
 
         BigDecimal fromCardBallance = fromCardDTO.getRemeins();
 
         if(fromCardBallance.compareTo(money) < 0) {
+            log.warn("Недостаточно средств на карте номер: {}", fromCard);
             throw new BankExeption("Недостаточно средств на карте номер: " + fromCard);
         }
 
@@ -102,6 +116,7 @@ public class UserCabinetServiceIMPL implements UserCabinetService {
         CardDTO cardDTO = cardService.findByNumber(number);
 
         if(cardDTO == null) {
+            log.warn("Карта с номером: {} не найдена", number);
             throw new CardNotFoundExeption("Карта с номером: " + number + " не найдена");
         }
 
@@ -111,18 +126,23 @@ public class UserCabinetServiceIMPL implements UserCabinetService {
 
     @Override
     public AddMoneyDTO addMoney(String number, BigDecimal money) {
-        CardDTO cardDTO = cardService.findByNumber(number);
+
         String clientLogin = SecurityContextHolder.getContext().getAuthentication().getName();
+        CardDTO cardDTO = cardService.findByNumber(number);
+
 
         if(cardDTO == null) {
+            log.warn("Карта с номером: {} не найдена", number);
             throw new CardNotFoundExeption("Карта с номером: " + number + " не найдена");
         }
 
-        if(cardDTO.getOwnerLogin() != clientLogin) {
+        if(!cardDTO.getOwnerLogin().equals(clientLogin)) {
+            log.warn("Карта с номером: {} не пренадлежит авторизированному пользователю", number);
             throw new WrongCardOwnerExeption("Карта с номером: " + number + " не пренадлежит авторизированному пользователю");
         }
 
         if(money.compareTo(new BigDecimal(0)) < 0) {
+            log.warn("Сумма пополнения меньше нуля");
             throw new BankExeption("Сумма пополнения меньше нуля");
         }
 

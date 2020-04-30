@@ -23,39 +23,8 @@ public class RegestrationServiceIMPL implements RegestrationService {
         return clientService.addClient(clientDTO, password);
     }
 
-    public ClientDTO deleteClient(@NonNull ClientDTO clientDTO, @NonNull String password) {
-        return clientService.deleteClient(clientDTO, password);
+    public ClientDTO deleteClient(@NonNull ClientDTO clientDTO) {
+        return clientService.deleteClient(clientDTO);
     }
 
-
-     /*
-    @Autowired
-    private ClientRepository clientRepository;
-
-    RegestrationServiceIMPL(ClientRepository clientRepository) {
-        this.clientRepository = clientRepository;
-    }
-    // Регестрация нового клиента
-
-    public ClientDTO regestrateNewClient(@NonNull Client client) {
-        if(clientRepository.findClientByLogin(client.getLogin()) == null) {
-           Client tempClient = clientRepository.save(client);
-           return ClientDTO.createClientDTO(tempClient);
-        } else {
-            return null;
-        }
-    }
-
-    // Удаление пользователя
-    public ClientDTO deleteClient(@NonNull Client client) {
-        if(clientRepository.findClientByLogin(client.getLogin()) != null) {
-            ClientDTO clientDTO = ClientDTO.createClientDTO(client);
-            clientRepository.delete(client);
-            return clientDTO;
-        } else {
-            return null;
-        }
-    }
-
-     */
 }

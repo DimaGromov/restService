@@ -1,5 +1,6 @@
 package ru.kuprik.restService.controllers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,13 +17,16 @@ import ru.kuprik.restService.dto.AuthenticationRequestDTO;
 import ru.kuprik.restService.dto.ClientDTO;
 import ru.kuprik.restService.dto.ClientRegestrationDTO;
 import ru.kuprik.restService.dto.ResponseTokenDTO;
+import ru.kuprik.restService.exeption.JwtAuthenticationException;
 import ru.kuprik.restService.exeption.UserAlredyRegestrateExeption;
+import ru.kuprik.restService.exeption.UserNotFoundException;
 import ru.kuprik.restService.model.Client;
 import ru.kuprik.restService.security.jwt.JwtTokenProvider;
 import ru.kuprik.restService.service.ClientService;
 import ru.kuprik.restService.service.RegestrationService;
 
 @RestController
+@Slf4j
 @RequestMapping(value = "api/auth/")
 public class AuthenticationController {
 
@@ -42,15 +46,22 @@ public class AuthenticationController {
 
     @PostMapping("login")
     public ResponseEntity login(@RequestBody AuthenticationRequestDTO authenticationRequestDTO) {
-        try {
-            String username = authenticationRequestDTO.getUsername();
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, authenticationRequestDTO.getPassword()));
 
+            String username = authenticationRequestDTO.getUsername();
             ClientDTO clientDTO = clientService.findByLogin(username);
 
             if(clientDTO == null) {
-                throw new UsernameNotFoundException("Client with login: " + username + " not found");
+                log.warn("Invalid username or password");
+                throw new UserNotFoundException("Invalid username or password");
             }
+
+            try {
+                authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, authenticationRequestDTO.getPassword()));
+            } catch (AuthenticationException e) {
+                log.warn("Invalid username or password");
+                throw new JwtAuthenticationException("Invalid username or password");
+            }
+
 
             String token = jwtTokenProvider.createToken(username, clientDTO.getRoles());
 
@@ -60,21 +71,21 @@ public class AuthenticationController {
 
             return ResponseEntity.ok(responseTokenDTO);
 
-        } catch (AuthenticationException e) {
-            throw new BadCredentialsException("Invalid username or password");
-        }
+
     }
 
     @PostMapping("regestrarion")
     public ResponseEntity<ClientDTO> regestrate(@RequestBody ClientRegestrationDTO clientRegestrationDTO) {
         ClientDTO clientDTO = clientRegestrationDTO.getClientDTO();
         String password = clientRegestrationDTO.getPassword();
+
         if(clientService.findByLogin(clientDTO.getLogin()) != null) {
+            log.warn("Пользователь с логином: {} уже зарегестрирован", clientDTO.getLogin());
             throw new UserAlredyRegestrateExeption("Пользователь с логином: " + clientDTO.getLogin() + " уже зарегестрирован.");
-        } else {
-            regestrationService.regestrateNewClient(clientDTO, password);
-            return new ResponseEntity<>(clientDTO, HttpStatus.CREATED);
         }
+
+        regestrationService.regestrateNewClient(clientDTO, password);
+        return ResponseEntity.ok(clientDTO);
     }
 
 

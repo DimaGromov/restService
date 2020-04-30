@@ -59,16 +59,17 @@ public class ClientServiceIMPL implements ClientService {
 
         Client client = ClientDTO.createClient(clientDTO, passwordEncoder.encode(password));
         client.setRoles(clientRoles);
-        if(clientRepository.findClientByLogin(client.getLogin()) == null) {
-            clientRepository.save(client);
-            return clientDTO;
-        } else return null;
+
+        clientRepository.save(client);
+        return clientDTO;
+
     }
 
     @Override
-    public ClientDTO deleteClient(@NonNull ClientDTO clientDTO, @NonNull String password) {
-        Client client = ClientDTO.createClient(clientDTO, password);
-        if(clientRepository.findClientByLogin(client.getLogin()) != null) {
+    public ClientDTO deleteClient(@NonNull ClientDTO clientDTO) {
+        Client client = clientRepository.findClientByLogin(clientDTO.getLogin());
+        // Client client = ClientDTO.createClient(clientDTO, password);
+        if(client != null) {
             clientRepository.delete(client);
             return clientDTO;
         } else return null;

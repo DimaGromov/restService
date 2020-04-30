@@ -11,7 +11,7 @@ public interface CardService {
     CardDTO addNewCard(CardDTO cardDTO);
     CardDTO findById(Long id);
     CardDTO findByNumber(String number);
-    CardDTO updateRemeinsByNumber(BigDecimal remeins, String number);
+    void updateRemeinsByNumber(BigDecimal remeins, String number);
     CardDTO deleteCard(CardDTO cardDTO);
     List<CardDTO> findAllByOwnerLogin(String ownerLogin);
 }

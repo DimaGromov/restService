@@ -20,6 +20,6 @@ public interface CardRepository extends JpaRepository<Card, Long> {
     // Обновлние баланса
     @Modifying
     @Query(value = "UPDATE Card c SET c.remeins = ?1 WHERE c.number = ?2")
-    Card updateRemeinsByNumber(BigDecimal remeins, String number);
+    void updateRemeinsByNumber(BigDecimal remeins, String number);
 
 }

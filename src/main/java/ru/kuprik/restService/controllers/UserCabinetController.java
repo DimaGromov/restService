@@ -3,21 +3,27 @@ package ru.kuprik.restService.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import ru.kuprik.restService.dto.AddMoneyDTO;
 import ru.kuprik.restService.dto.CardDTO;
 import ru.kuprik.restService.dto.TransactionDTO;
 import ru.kuprik.restService.service.UserCabinetService;
 
+
 import java.math.BigDecimal;
 import java.util.List;
 
-@RestController(value = "api/usercabinet/")
+@RestController
+@RequestMapping(value = "/cabinet/")
 public class UserCabinetController {
 
-    @Autowired
+
     private final UserCabinetService userCabinetService;
 
+
+
+    @Autowired
     UserCabinetController(UserCabinetService userCabinetService) {
         this.userCabinetService = userCabinetService;
     }
@@ -43,23 +49,24 @@ public class UserCabinetController {
         return new ResponseEntity<>(deletedCardDTO, HttpStatus.OK);
     }
 
-    @GetMapping(value = "cards/{cardNumber}")
-    public ResponseEntity<BigDecimal> checkBallance(@PathVariable String cardNumber) {
+    @GetMapping(value = "cards/ballance")
+    public ResponseEntity checkBallance(@RequestBody String cardNumber) {
         BigDecimal ballance = userCabinetService.checkBallance(cardNumber);
 
-        return new ResponseEntity<>(ballance, HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PostMapping(value = "cards/{cardNumber}")
+    @PostMapping(value = "cards/ballance")
     public ResponseEntity<AddMoneyDTO> addMoney(@RequestBody AddMoneyDTO addMoneyDTO) {
         String number = addMoneyDTO.getCartNumber();
         BigDecimal money = addMoneyDTO.getMoney();
+        String clientLogin = SecurityContextHolder.getContext().getAuthentication().getName();
         AddMoneyDTO createdAddMoneyDTO = userCabinetService.addMoney(number, money);
 
         return new ResponseEntity<>(createdAddMoneyDTO, HttpStatus.OK);
     }
 
-    @PostMapping(value = "transacion")
+    @PostMapping(value = "transaction")
     public ResponseEntity<TransactionDTO> sendMoney(@RequestBody TransactionDTO transactionDTO) {
         String fromCard = transactionDTO.getFromCard();
         String toCard = transactionDTO.getToCard();

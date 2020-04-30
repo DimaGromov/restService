@@ -33,7 +33,6 @@ public class ClientDTO {
         client.setSecondName(clientDTO.getSecondName());
         client.setMiddleName(clientDTO.getMiddleName());
         client.setPassword(password);
-        client.setRoles(clientDTO.getRoles());
         return client;
     }
 

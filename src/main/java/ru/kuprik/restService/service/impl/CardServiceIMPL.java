@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.kuprik.restService.dto.CardDTO;
 import ru.kuprik.restService.model.Card;
+import ru.kuprik.restService.model.Client;
 import ru.kuprik.restService.repository.CardRepository;
 import ru.kuprik.restService.service.CardService;
 import ru.kuprik.restService.service.ClientService;
@@ -62,11 +63,10 @@ public class CardServiceIMPL  implements CardService {
     }
 
     @Override
-    public CardDTO updateRemeinsByNumber(@NonNull BigDecimal remeins, @NonNull String number) {
-        if(cardRepository.findByNumber(number) != null) {
-            Card tempCard = cardRepository.updateRemeinsByNumber(remeins, number);
-            return CardDTO.createCardDTO(tempCard);
-        } else return null;
+    public void updateRemeinsByNumber(@NonNull BigDecimal remeins, @NonNull String number) {
+       Card card = cardRepository.findByNumber(number);
+       card.setRemeins(remeins);
+       cardRepository.save(card);
     }
 
     @Override
